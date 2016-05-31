@@ -12,22 +12,24 @@ module Analyzable
     end.join("\n")
   end
 
-  # metaprogramming for counting items by...
-  def self.method_missing(method_name, *arguments)
-    if method_name.to_s.start_with?('count_by_')
-      items = arguments[0]
-      # get the substring after "count_by"
-      field = method_name.to_s[9..-1]
-      categories = items.map { |item| eval("item.#{field}") }.uniq
+  def count_by_brand(items)
+    count_by(items, "brand")
+  end
+
+  def count_by_name(items)
+    count_by(items, "name")
+  end
+
+  private
+
+  # generic count_by method
+  def count_by(items, what)
+      categories = items.map { |item| eval("item.#{what}") }.uniq
       result = Hash.new
       categories.each do |category| 
-        result[category] = items.select { |item| eval("item.#{field}") == category }.length
+        result[category] = items.select { |item| eval("item.#{what}") == category }.length
       end
-      return result
-    else
-      puts "No method named #{method_name}"
-      super
-    end
+      result
   end
 
 end
