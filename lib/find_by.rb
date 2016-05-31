@@ -1,6 +1,12 @@
 class Module
   def create_finder_methods(*attributes)
-    # Your code goes here!
-    # Hint: Remember attr_reader and class_eval
+    attributes.each do |attribute|
+      find_method = %Q{
+         def self.find_by_#{attribute}(value)
+            return all.find { |item| item.#{attribute} == value }
+         end
+      }
+      self.class_eval(find_method) if ! self.respond_to?("find_by_#{attribute}")
+    end
   end
 end

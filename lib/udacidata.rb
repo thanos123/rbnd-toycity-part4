@@ -74,9 +74,10 @@ class Udacidata
 
   def self.method_missing(method_name, *arguments)
     if method_name.to_s.start_with?('find_by_')
-      # get the substring after "find_by", which is what we are trying to find
-      field = method_name.to_s[8..-1]
-      return all.find { |item| eval("item.#{field}") == arguments[0] }
+      # if a method "find_by" is missing, create it
+      create_finder_methods(method_name.to_s[8..-1])
+      # and then call it
+      eval("self.#{method_name}(*arguments)")
     else
       puts "No method named #{method_name}"
       super
