@@ -49,7 +49,7 @@ class Udacidata
   # finds all products with the passed condition
   def self.where(options={})
     all.select do |item|
-      item.instance_variable_get("@#{options.keys[0]}") == options.values[0]
+      eval("item.#{options.keys[0]}") == options.values[0]
     end
   end
 
@@ -73,7 +73,7 @@ class Udacidata
     if method_name.to_s.start_with?('find_by_')
       # get the substring after "find_by", which is what we are trying to find
       field = method_name.to_s[8..-1]
-      return all.find { |item| item.instance_variable_get("@#{field}") == arguments[0] }
+      return all.find { |item| eval("item.#{field}") == arguments[0] }
     else
       puts "No method named #{method_name}"
       super

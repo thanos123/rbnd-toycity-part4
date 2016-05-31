@@ -4,8 +4,6 @@ require 'faker'
 # fake data for testing purposes
 
 def db_seed
-  # Create 10 new Product objects, and save them to the 
-  # database
   10.times do
     Product.create( 
       brand: Faker::Company.name, 
