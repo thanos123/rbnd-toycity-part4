@@ -1,14 +1,14 @@
 module Analyzable
 
   # find the average price of the passed products
-  def average_price(products)
-    price_sum = products.inject(0){ |sum, product| sum + product.price.to_f }
-    (price_sum / products.size).round(2)
+  def average_price(items)
+    price_sum = items.inject(0){ |sum, item| sum + item.price.to_f }
+    (price_sum / items.size).round(2)
   end
 
-  def print_report(products)
-    products.map do |product|
-      product.name
+  def print_report(items)
+    items.map do |item|
+      item.attributes.map { |key,value| "#{key}:#{value}" }.join("   ")
     end.join("\n")
   end
 

@@ -36,8 +36,11 @@ class Udacidata
 
   # finds a product by id, or creates it if it doesn't exist
   def self.find(id)
-    item = all.find { |item| item.id == id }
-    return item == nil ? self.new({id: id}) : item
+    object = all.find { |item| item.id == id }
+    if object == nil
+      raise ProductNotFoundError, "Product with id #{id} does not exist."
+    end
+    object
   end
 
   # deletes the entry with id
