@@ -4,12 +4,13 @@ require 'csv'
 
 class Udacidata
   @@data_path = File.dirname(__FILE__) + "/../data/data.csv"
+  @@headers = []
   
   # creates a new object and saves it if it doesn't exist in the CSV file 
   def self.create(attributes={})
     return self.new(attributes) if item_exists?(attributes)
     object = self.new(attributes)
-    save_to_csv(object)
+    add_to_csv(object)
     object
   end 
 
@@ -36,12 +37,36 @@ class Udacidata
   # finds a product by id, or creates it if it doesn't exist
   def self.find(id)
     item = all.find { |item| item.id == id }
-    return item == nil ? self.create({id: id}) : item
+    return item == nil ? self.new({id: id}) : item
   end
 
+  # deletes the entry with id
   def self.destroy(id)
-    item = find(id)
-    delete_from_csv(item)
+    object = find(id)
+    delete_from_csv(object)
+  end
+
+  # finds all products with the passed condition
+  def self.where(options={})
+    all.select do |item|
+      item.instance_variable_get("@#{options.keys[0]}") == options.values[0]
+    end
+  end
+
+  # updates the item in the database
+  def update(options={})
+    options.each do |key,value|
+      self.instance_variable_set("@#{key}", value)
+    end
+    self.class.destroy(self.id)
+    self.class.create(self.attributes)
+  end
+
+  # method that converts the instance variables to a Hash
+  def attributes
+    self.instance_variables.each_with_object({}) do |var, hash| 
+      hash[var.to_s.delete("@").to_sym] = self.instance_variable_get(var)
+    end
   end
 
   def self.method_missing(method_name, *arguments)
@@ -69,8 +94,9 @@ class Udacidata
   end
 
   # returns the headers of the CSV file
-  def self.get_headers  
-    CSV.read(@@data_path).first
+  def self.get_headers
+    return @@headers if @@headers != []
+    @@headers = CSV.read(@@data_path).first
   end
 
   # returns the data of the CSV file, minus the headers
@@ -79,6 +105,7 @@ class Udacidata
   end
 
   # saves all data to the CSV file
+  # it leaves the file completely empty if destroy is set to true and there is no data
   def self.save_data(rows)
     headers = get_headers
     CSV.open(@@data_path, "wb") do |csv|
@@ -89,9 +116,8 @@ class Udacidata
 
   # combines the data and the headers into an array of hashes
   def self.get_data_hashes
-    headers = get_headers
     # if the header has the class name, change it to "name"
-    headers.map! do |header|
+    headers = get_headers.map do |header|
       header == self.name.downcase ? "name" : header
     end
     get_data.map {|a| Hash[ headers.map { |x| x.to_sym }.zip(a) ] }
@@ -108,8 +134,8 @@ class Udacidata
     false
   end
 
-  # saves a single entry to the CSV file
-  def self.save_to_csv(object)
+  # adds a single entry to the CSV file
+  def self.add_to_csv(object)
     CSV.open(@@data_path, "ab") do |csv|
       csv << object_to_row(object)
     end
@@ -118,9 +144,7 @@ class Udacidata
   # deletes a single object from the CSV
   def self.delete_from_csv(object)
     rows = get_data
-    rows.delete_if do |row|
-      object_to_row(object) == row
-    end
+    rows.delete_if{ |row| object_to_row(object) == row }
     save_data(rows)
     object
   end
